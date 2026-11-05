@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.git/
+.github/
+.claude/
+.idea/
+.vscode/
+*.log
+.DS_Store

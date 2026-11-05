@@ -1,0 +1,129 @@
+# Copier template for Influenzanet participant web apps.
+#
+#   new country:      copier copy gh:influenzanet/participant-webapp-template ./my-webapp
+#   pull updates:     copier update            (from the country repo, clean git tree)
+#
+# Files listed in _skip_if_exists are created once and then belong to the country.
+# Every other generated file is template-owned: change it here, not in the country
+# repo (local edits survive `copier update` through a 3-way merge, but they drift).
+
+_min_copier_version: "9.0.0"
+_subdirectory: template
+_answers_file: .copier-answers.yml
+_templates_suffix: .jinja
+
+# [[ ]] instead of {{ }}: GitHub workflows and nginx are full of {{ }} / ${ }.
+_envops:
+  block_start_string: "[%"
+  block_end_string: "%]"
+  variable_start_string: "[["
+  variable_end_string: "]]"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  keep_trailing_newline: true
+
+_skip_if_exists:
+  - .env
+  - src/index.tsx
+  - src/index.scss
+  - nginx/snippets/csp.conf
+  - nginx/snippets/locations.conf
+
+_message_after_copy: |
+  Next: yarn install && yarn build
+_message_after_update: |
+  Review `git diff` (and any .rej / conflict markers), then: yarn install && yarn build
+
+# --- identity -------------------------------------------------------------
+package_name:
+  type: str
+  help: npm package name of the app (lowercase, no spaces)
+  validator: "[% if not (package_name | regex_search('^[a-z0-9][a-z0-9._-]*$')) %]lowercase letters, digits, . _ - only[% endif %]"
+
+app_title:
+  type: str
+  help: Browser tab title (e.g. Influweb)
+
+description:
+  type: str
+  help: HTML meta description
+
+html_lang:
+  type: str
+  help: <html lang> attribute (e.g. it, fr, nl-be)
+  default: en
+
+favicon:
+  type: str
+  help: Favicon path served from public/
+  default: /assets/static/images/favicon/favicon.png
+
+head_extra:
+  type: str
+  multiline: true
+  help: Extra lines for <head> (verification metas, ...). Leave empty if none.
+  default: ""
+
+# --- build & deploy -------------------------------------------------------
+docker_image:
+  type: str
+  help: Docker image name used by `make docker` (e.g. influweb/participant-webapp)
+
+dev_proxy_target:
+  type: str
+  help: Backend the dev server proxies /api to (e.g. https://influweb.staging.influenzanet.info)
+
+dev_ws_proxy_paths:
+  type: yaml
+  help: Extra dev-server proxy paths with websockets (e.g. [/dashboard, /_stcore] for a Streamlit dashboard)
+  default: []
+
+# --- pinned by the template ------------------------------------------------
+# `when: false`: never asked, never stored in the answers, so every `copier update`
+# applies the values of the template version being pulled. Bump them here.
+dev_path_proxies:
+  type: yaml
+  help: 'Dev-server proxies to other backends, prefix -> URL, prefix stripped (e.g. {"/results-proxy": "https://storage.googleapis.com/my-bucket"})'
+  default: {}
+
+node_image:
+  type: str
+  when: false
+  default: node:22-alpine
+
+nginx_image:
+  type: str
+  when: false
+  default: nginx/nginx-unprivileged:1.30.6-alpine3.24
+
+kit_version:
+  type: str
+  when: false
+  default: "^0.1.0"
+
+core_version:
+  type: str
+  when: false
+  default: "2.7.8"
+
+ui_version:
+  type: str
+  when: false
+  default: "1.15.1"
+
+survey_engine_version:
+  type: str
+  when: false
+  default: "1.2.1"
+
+extra_dependencies:
+  type: yaml
+  help: 'Country-only runtime dependencies, as a mapping name -> version (e.g. {"@reduxjs/toolkit": "1.8.1"})'
+  default: {}
+
+# --- only used when creating a new app (src/index.tsx) --------------------
+date_locales:
+  type: yaml
+  help: "Date locales: list of {code, dateFns, format} (code = i18n language, dateFns = date-fns locale export)"
+  default:
+    - { code: en, dateFns: enGB, format: dd/MM/yyyy }
