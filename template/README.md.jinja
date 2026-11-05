@@ -89,8 +89,18 @@ Country-only extensions are registered in `src/index.tsx` (`extensions: [...]`).
   `REACT_APP_CONTENT_URL`, reCAPTCHA, title, description. `REACT_APP_VERSION` and the survey engine
   version come from `package.json`.
 - Local overrides: `.env.local`, `.env.development.local` (git-ignored, standard Vite order).
-- Production overrides: the Docker build arg `ENV_FILE` is baked in as `.env.production.local`;
-  the CI writes `REACT_APP_DEFAULT_INSTANCE` there from the `INSTANCE_ID` secret, if set.
+- Per-environment values (staging vs production): `REACT_APP_*` values are baked in at build time,
+  so an environment with different values gets its own image. Keep the production values in `.env`
+  and only the differing keys in a committed `.env.<environment>` file, e.g. `.env.staging`, then
+  build with it: `make docker ENV_FILE=.env.staging VERSION=v1.2.0-rc.1`, or the CI `env_file`
+  input. The file is baked in as `.env.production.local`, which overrides `.env`.
+  Don't name it `.env.production` (Vite loads that for every build, staging included) or
+  `*.local` (git-ignored). Values that can be the same everywhere should be (e.g. one reCAPTCHA
+  key listing both domains): one image then serves both environments.
+- The CI writes `REACT_APP_DEFAULT_INSTANCE` from the `INSTANCE_ID` secret, if set, after the env
+  file (it wins); with GitHub environments (`environment` input) each one can have its own.
+- A local, git-ignored `.env.production.local` ends up in a local `make docker` build unless
+  `ENV_FILE` replaces it.
 - Content-Security-Policy: `nginx/snippets/csp.conf`, one `set $csp` per directive. The template
   sends it (enforced) on every response, adding `upgrade-insecure-requests` for https clients.
   When adding a third party, add it there and check every page in a browser.
@@ -119,6 +129,8 @@ Change these with the `dev_proxy_target`, `dev_ws_proxy_paths`, `dev_path_proxie
 
 - Local: `make docker` builds `[[ docker_image ]]:<latest git tag>` (`VERSION=...`,
   `ENV_FILE=...` optional). The image is nginx-unprivileged on port 8080.
-- CI: run "Build docker image" (`.github/workflows/docker-image.yml`) manually. Secrets:
-  `DOCKER_USER`, `DOCKER_PASSWORD`, `DOCKER_ORGANIZATION`, `DOCKER_REPO_NAME`, optional `INSTANCE_ID`.
+- CI: run "Build docker image" (`.github/workflows/docker-image.yml`) manually. Inputs:
+  `image_version` (always set it: empty means the latest git tag, possibly the one production
+  runs), `env_file` (e.g. `.env.staging`), `environment`. Secrets: `DOCKER_USER`,
+  `DOCKER_PASSWORD`, `DOCKER_ORGANIZATION`, `DOCKER_REPO_NAME`, optional `INSTANCE_ID`.
 - Kubernetes: cluster-management, `svcWebParticipant` (with `unprivileged: true`).

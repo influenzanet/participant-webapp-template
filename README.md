@@ -89,4 +89,8 @@ floors within the major (`^7.26.10`, not `>=`): a fresh install otherwise jumps 
   (`X-Forwarded-Proto: https`, set by the ingress), so plain-http local runs keep working
   (it would otherwise rewrite same-origin http:// iframes to an https:// origin that doesn't exist).
 - CI: `docker-image.yml`, manual or `workflow_call`; tag defaults to the latest git tag;
-  optional `INSTANCE_ID` secret overrides `REACT_APP_DEFAULT_INSTANCE`.
+  optional `env_file` input (e.g. `.env.staging`) is copied to `.env.production.local` (overrides
+  `.env`), then the optional `INSTANCE_ID` secret is appended (overrides both).
+- Per-environment values: `REACT_APP_*` are build-time, so staging and production with different
+  values are two images; countries keep production in `.env` and the differences in a committed
+  `.env.<environment>` (`ENV_FILE=` locally, `env_file` in CI).

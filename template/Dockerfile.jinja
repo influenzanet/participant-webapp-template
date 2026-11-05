@@ -2,7 +2,7 @@
 #
 # Build args:
 #   ENV_FILE  optional env file baked in as .env.production.local (highest precedence),
-#             e.g. --build-arg ENV_FILE=.env.production.local.minikube
+#             overriding .env, e.g. --build-arg ENV_FILE=.env.staging
 #
 # Build with --pull so `apk upgrade` picks up the Alpine fixes released for the pins.
 

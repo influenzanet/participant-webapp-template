@@ -2,7 +2,7 @@
 DOCKER_OPTS ?= --rm --pull
 IMAGE ?= [[ docker_image ]]
 VERSION ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo dev)
-# optional env file baked in as .env.production.local
+# optional env file baked in over .env (as .env.production.local), e.g. ENV_FILE=.env.staging
 ENV_FILE ?=
 
 help:
@@ -11,7 +11,7 @@ help:
 	@echo "  template      pull the latest participant-webapp-template (copier update)"
 	@echo "Env:"
 	@echo "  DOCKER_OPTS   docker build options (default: $(DOCKER_OPTS))"
-	@echo "  ENV_FILE      env file baked into the image (default: none)"
+	@echo "  ENV_FILE      env file baked in over .env, e.g. .env.staging (default: none)"
 	@echo "  VERSION       image tag (default: latest git tag)"
 
 docker:
