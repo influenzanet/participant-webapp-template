@@ -103,17 +103,17 @@ nginx_image:
 kit_version:
   type: str
   when: false
-  default: "^0.1.0"
+  default: "^0.2.0"
 
 core_version:
   type: str
   when: false
-  default: "2.7.8"
+  default: "2.9.15-staging.5"
 
 ui_version:
   type: str
   when: false
-  default: "1.15.1"
+  default: "1.15.2-staging"
 
 survey_engine_version:
   type: str
